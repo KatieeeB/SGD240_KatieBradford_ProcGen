@@ -788,7 +788,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   width: 50
   height: 50
-  fillPercent: 18
+  cellularAutomataSteps: 2
+  fillPercent: 40
   filledTilePrefab: {fileID: 6839011074189193539, guid: 2992ccc097576b5479f57678aa86cf71, type: 3}
 --- !u!4 &2086013934
 Transform:
