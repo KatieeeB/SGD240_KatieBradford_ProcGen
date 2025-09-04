@@ -9,14 +9,15 @@ public class ProceduralCaveGeneration : MonoBehaviour
    [SerializeField] private int cellularAutomataSteps;
    [Range(0,100)] [SerializeField] private int fillPercent;
    [SerializeField] private GameObject filledTilePrefab;
+   [SerializeField] private GameObject borderPrefab;
     
-    private enum squareType{
+    private enum squareType
+    {
         EMPTY,
         FILL
     }
     private squareType[,] map;
 
-    
 
     void Start()
     {
@@ -27,62 +28,95 @@ public class ProceduralCaveGeneration : MonoBehaviour
     {
         map = new squareType[width,height];
         RandomNoiseGrid(); //generate random noise grid
-        for (int i = 0; i < cellularAutomataSteps; i ++) { //repeat cellular automata for desired number of steps.
+        for (int i = 0; i < cellularAutomataSteps; i ++) //repeat cellular automata for desired number of steps.
+        { 
 			CellularAutomata();
         }
         DrawMap();
     }
 
+
+    bool IsMapCentre(int x, int y) 
+    {
+        return x >= (width/2) - 1 && x <= (width/2) + 1 && y >= (height/2) - 2 && y <= (height/2); //middle 3x3 tiles of the map
+    }
+
+
+
     void RandomNoiseGrid() //Generates random noise grid
     {
-        for (int x = 0; x < width; x ++) {
-            for (int y = 0; y < height; y ++) {
+        for (int x = 0; x < width; x ++) 
+        {
+            for (int y = 0; y < height; y ++) 
+            {    
                 //generate a random number between 0 and 100, if it's less than the fill percentage fill it in.
                 if (Random.Range(0,100) < fillPercent) 
                 { 
                     map[x,y] = squareType.FILL;
                 }
                 //if it's more than the fill percentage it is empty
-                else {
-                    map[x,y] = squareType.EMPTY;
-                }                 
+                else 
+                {
+                    map[x,y] = squareType.EMPTY;                
+                }
             }
+
         }
     }
 
     
     void CellularAutomata() { //Put the map through Cellular Automata process
-		for (int x = 0; x < width; x ++) {
-			for (int y = 0; y < height; y ++) {
-				int neighbourWallTiles = GetNeighbouringWallCount(x,y); //get the number of neighbouring wall tiles
+		for (int x = 0; x < width; x ++) 
+        {
+			for (int y = 0; y < height; y ++) 
+            {
+                if (IsMapCentre(x, y)) //leave the spawn radius empty when generating the random noise grid
+                {
+                    map[x,y] = squareType.EMPTY;
+                }
+                else
+                {
+				    int neighbourWallTiles = GetNeighbouringWallCount(x,y); //get the number of neighbouring wall tiles
 
-				if (neighbourWallTiles > 4) //if there are more than 4 neighbouring wall tiles, set the tile to a wall
-					map[x,y] = squareType.FILL;
-				else if (neighbourWallTiles < 4) //otherwise the tile is empty
-					map[x,y] = squareType.EMPTY;
-
-			}
+				    if (neighbourWallTiles > 4) //if there are more than 4 neighbouring wall tiles, set the tile to a wall
+				    {
+                    map[x,y] = squareType.FILL;
+                    }
+				    else if (neighbourWallTiles < 4) //otherwise the tile is empty
+				    {	
+                    map[x,y] = squareType.EMPTY;
+                    }
+			    }
+            }
 		}
 	}
 
 
-    bool IsInsideMap(int x, int y) { //check if the neighbouring tile is inside the map
+
+
+    bool IsInsideMap(int x, int y)  //check if the neighbouring tile is inside the map
+    { 
         return x >= 0 && x < width && y >= 0 && y < height; //true if x/y is greater than or equal to 0, and is less than the width/height
     }
+
 
 
     int GetNeighbouringWallCount (int gridX, int gridY) //get the number of neighbouring wall tiles
     {
         int wallCount = 0;
 
-        for (int neighbourX = gridX - 1; neighbourX <= gridX +1; neighbourX ++) { 
-            for (int neighbourY = gridY - 1; neighbourY <= gridY +1; neighbourY ++) {
+        for (int neighbourX = gridX - 1; neighbourX <= gridX +1; neighbourX ++) 
+        { 
+            for (int neighbourY = gridY - 1; neighbourY <= gridY +1; neighbourY ++) 
+            {
                 if (IsInsideMap(neighbourX, neighbourY)) { //if the tile is inside the map
-                    if (map[neighbourX, neighbourY] == squareType.FILL) { //if it is a wall
+                    if (map[neighbourX, neighbourY] == squareType.FILL) //if it is a wall
+                    { 
                         wallCount ++; //add to the wall count
                     }
                 }
-                else { //if the tile is not inside the map
+                else //if the tile is not inside the map
+                { 
                     wallCount ++; //add to the wall count
                 }
             }
@@ -91,17 +125,48 @@ public class ProceduralCaveGeneration : MonoBehaviour
         return wallCount;
     } 
 
+
+
+    void InstantiateTiles(int x, int y, GameObject prefab)
+    {
+        Vector2 position = new Vector2(x - (width/2), y - (height/2)); //centre the map
+        Instantiate(prefab, position, Quaternion.identity, transform); //instantiate the prefab
+    }
+
+
+
     void DrawMap()
     {
-        for (int x = 0; x < width; x ++) {
-            for (int y = 0; y < height; y ++) {
-                Vector2 position = new Vector2(x, y);
-
+        for (int x = 0; x < width; x ++) 
+        {
+            for (int y = 0; y < height; y ++) 
+            {
                 if (map[x,y] == squareType.FILL) //place a wall where every filled tile is.
                 {
-                    Instantiate(filledTilePrefab, position, Quaternion.identity, transform);
+                    InstantiateTiles(x, y, filledTilePrefab);
                 }
             }
         }
+
+        DrawBorder();
     }
+
+
+
+    void DrawBorder() //create a border around the map
+    {
+        for (int x = 0; x < width; x++) //x axis
+        {
+            InstantiateTiles(x, -1, borderPrefab);
+            InstantiateTiles(x, height, borderPrefab);
+        }
+
+        for (int y = 0; y < height; y ++) //y axis
+        {
+            InstantiateTiles(-1, y, borderPrefab);
+            InstantiateTiles(width, y, borderPrefab);
+        }
+    }
+
+
 }

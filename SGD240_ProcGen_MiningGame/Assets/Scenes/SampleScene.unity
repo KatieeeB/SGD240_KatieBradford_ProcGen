@@ -786,11 +786,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca1e7b43b299b4c48b048da71e95a87f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 50
-  height: 50
+  width: 128
+  height: 128
   cellularAutomataSteps: 2
-  fillPercent: 40
+  fillPercent: 45
   filledTilePrefab: {fileID: 6839011074189193539, guid: 2992ccc097576b5479f57678aa86cf71, type: 3}
+  borderPrefab: {fileID: 2236329926240497593, guid: 62e8fe0749b82d14f868d4dbdd699ca9, type: 3}
 --- !u!4 &2086013934
 Transform:
   m_ObjectHideFlags: 0
