@@ -36,10 +36,7 @@ public class ProceduralCaveGeneration : MonoBehaviour
     }
 
 
-    bool IsMapCentre(int x, int y) 
-    {
-        return x >= (width/2) - 1 && x <= (width/2) + 1 && y >= (height/2) - 2 && y <= (height/2); //middle 3x3 tiles of the map
-    }
+
 
 
 
@@ -64,7 +61,13 @@ public class ProceduralCaveGeneration : MonoBehaviour
         }
     }
 
-    
+
+    bool IsMapCentre(int x, int y) 
+    {
+        return x >= (width/2) - 1 && x <= (width/2) + 1 && y >= (height/2) - 2 && y <= (height/2); //middle 3x3 tiles of the map
+    }
+
+
     void CellularAutomata() { //Put the map through Cellular Automata process
 		for (int x = 0; x < width; x ++) 
         {
@@ -150,8 +153,6 @@ public class ProceduralCaveGeneration : MonoBehaviour
 
         DrawBorder();
     }
-
-
 
     void DrawBorder() //create a border around the map
     {

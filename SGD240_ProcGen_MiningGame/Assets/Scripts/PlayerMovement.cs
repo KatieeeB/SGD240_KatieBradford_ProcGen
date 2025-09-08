@@ -9,23 +9,35 @@ public class PlayerMovement : MonoBehaviour
     private bool isFacingLeft = false;
     private Vector2 movement;
     private Animator animator;
-  
+    private PlayerMining playerMining;
+
+
     // Start is called before the first frame update
     void Start()
     {
        rb = GetComponent<Rigidbody2D>(); // Get and store the rigidbody component attached to the player
        animator = GetComponent<Animator>(); //Get and store the Animator component attached to the player
+       playerMining = GetComponent<PlayerMining>(); //get and store the playerMining script attatched to the player
     }
 
     // Update is called once per frame
     void Update()
     {
-        movement.x = Input.GetAxisRaw("Horizontal"); //set movement.x to horizontal input
-        movement.y = Input.GetAxisRaw("Vertical"); //set movement.y to vertical input
 
-        FlipSprite();
+        if(playerMining != null && playerMining.isMining) //if the player is currently mining
+        {
+            movement = Vector2.zero; //stop player movement
+        }
+        else
+        {
+            movement.x = Input.GetAxisRaw("Horizontal"); //set movement.x to horizontal input
+            movement.y = Input.GetAxisRaw("Vertical"); //set movement.y to vertical input
 
-        animator.SetFloat("Walking", Mathf.Abs(movement.sqrMagnitude)); //play walking animation when the player moves in any direction
+            FlipSprite();
+
+            animator.SetFloat("Walking", Mathf.Abs(movement.sqrMagnitude)); //play walking animation when the player moves in any direction
+        }
+
     }
 
 
