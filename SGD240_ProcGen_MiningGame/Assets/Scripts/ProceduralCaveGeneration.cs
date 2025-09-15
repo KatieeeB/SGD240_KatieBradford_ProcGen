@@ -6,41 +6,95 @@ public class ProceduralCaveGeneration : MonoBehaviour
 {
    [SerializeField] private int width;
    [SerializeField] private int height;
+
    [SerializeField] private int cellularAutomataSteps;
-   [Range(0,100)] [SerializeField] private int fillPercent;
+   [Range(0,100)] [SerializeField] private int wallFillPercent;
    [SerializeField] private GameObject filledTilePrefab;
    [SerializeField] private GameObject borderPrefab;
+
+
+   [SerializeField] private GameObject oreTilePrefab;
+   [Range(0,100)] [SerializeField] private int oreFillPercent;
+   [SerializeField] private int oreCellularAutomataSteps;
     
+    //empty or fill (random noise/cellular automata)
     private enum squareType
     {
         EMPTY,
         FILL
     }
-    private squareType[,] map;
+    private squareType[,] grid;
 
-
+    //map tiles
+    private enum tileType
+    {
+        AIR,
+        WALL,
+        ORE,
+    }
+    private tileType[,] map;
+ 
+    
     void Start()
     {
-        GenerateMap();
-    }
+        grid = new squareType[width,height];
+        map = new tileType[width,height];
 
-    void GenerateMap()
+        GenerateCaves();
+        PopulateMap();
+        DrawMap();
+    }
+    
+    //generate the cave systems
+    void GenerateCaves()
     {
-        map = new squareType[width,height];
-        RandomNoiseGrid(); //generate random noise grid
+        RandomNoiseGrid(wallFillPercent); //generate random noise grid
         for (int i = 0; i < cellularAutomataSteps; i ++) //repeat cellular automata for desired number of steps.
         { 
 			CellularAutomata();
         }
-        DrawMap();
+
+        //every filled tile on the grid becomes a wall
+        for (int x = 0; x < width; x ++) 
+        {
+			for (int y = 0; y < height; y ++) 
+            {
+                if (grid[x,y] == squareType.FILL)
+                {
+                    map[x,y] = tileType.WALL;
+                }
+                else
+                {
+                    map[x,y] = tileType.AIR;
+                }
+            }
+        }
     }
+    
 
+    //populate the walls with veins of ores
+    void PopulateMap()
+    {
+        RandomNoiseGrid(oreFillPercent); //generate random noise grid with ore fill percentage
+        for (int i = 0; i < oreCellularAutomataSteps; i ++) //repeat cellular automata for desired number of steps
+        {
+            CellularAutomata();
+        }
 
+        
+        for (int x = 0; x < width; x ++) 
+        {
+			for (int y = 0; y < height; y ++) 
+            {
+                if (grid[x,y] == squareType.FILL && map[x,y] == tileType.WALL) //if the tile is filled on the grid AND it is a wall on the map
+                {
+                    map[x,y] = tileType.ORE; //set the tile to ORE
+                }
+            }
+        }
+    } 
 
-
-
-
-    void RandomNoiseGrid() //Generates random noise grid
+    void RandomNoiseGrid(int fillPercent) //Generates random noise grid
     {
         for (int x = 0; x < width; x ++) 
         {
@@ -49,15 +103,14 @@ public class ProceduralCaveGeneration : MonoBehaviour
                 //generate a random number between 0 and 100, if it's less than the fill percentage fill it in.
                 if (Random.Range(0,100) < fillPercent) 
                 { 
-                    map[x,y] = squareType.FILL;
+                    grid[x,y] = squareType.FILL;
                 }
                 //if it's more than the fill percentage it is empty
                 else 
                 {
-                    map[x,y] = squareType.EMPTY;                
+                    grid[x,y] = squareType.EMPTY;                
                 }
             }
-
         }
     }
 
@@ -75,7 +128,7 @@ public class ProceduralCaveGeneration : MonoBehaviour
             {
                 if (IsMapCentre(x, y)) //leave the spawn radius empty when generating the random noise grid
                 {
-                    map[x,y] = squareType.EMPTY;
+                    grid[x,y] = squareType.EMPTY;
                 }
                 else
                 {
@@ -83,11 +136,11 @@ public class ProceduralCaveGeneration : MonoBehaviour
 
 				    if (neighbourWallTiles > 4) //if there are more than 4 neighbouring wall tiles, set the tile to a wall
 				    {
-                    map[x,y] = squareType.FILL;
+                        grid[x,y] = squareType.FILL;
                     }
 				    else if (neighbourWallTiles < 4) //otherwise the tile is empty
 				    {	
-                    map[x,y] = squareType.EMPTY;
+                        grid[x,y] = squareType.EMPTY;
                     }
 			    }
             }
@@ -113,7 +166,7 @@ public class ProceduralCaveGeneration : MonoBehaviour
             for (int neighbourY = gridY - 1; neighbourY <= gridY +1; neighbourY ++) 
             {
                 if (IsInsideMap(neighbourX, neighbourY)) { //if the tile is inside the map
-                    if (map[neighbourX, neighbourY] == squareType.FILL) //if it is a wall
+                    if (grid[neighbourX, neighbourY] == squareType.FILL) //if it is a wall
                     { 
                         wallCount ++; //add to the wall count
                     }
@@ -129,7 +182,7 @@ public class ProceduralCaveGeneration : MonoBehaviour
     } 
 
 
-
+ 
     void InstantiateTiles(int x, int y, GameObject prefab)
     {
         Vector2 position = new Vector2(x - (width/2), y - (height/2)); //centre the map
@@ -139,17 +192,22 @@ public class ProceduralCaveGeneration : MonoBehaviour
 
 
     void DrawMap()
-    {
+    { 
         for (int x = 0; x < width; x ++) 
         {
             for (int y = 0; y < height; y ++) 
             {
-                if (map[x,y] == squareType.FILL) //place a wall where every filled tile is.
+                if (map[x,y] == tileType.WALL)
                 {
-                    InstantiateTiles(x, y, filledTilePrefab);
+                    InstantiateTiles(x, y, filledTilePrefab); //instantiate walls
+                }
+                else if (map[x,y] == tileType.ORE)
+                {
+                    InstantiateTiles(x, y, oreTilePrefab); //instantiate ores
                 }
             }
         }
+ 
 
         DrawBorder();
     }

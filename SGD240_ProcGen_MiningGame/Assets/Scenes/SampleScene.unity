@@ -322,7 +322,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87fa9198110ddd0408a074cf15343793, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isFacingLeft: 0
 --- !u!95 &280548646
 Animator:
   serializedVersion: 5
@@ -502,7 +501,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5.625
+  orthographic size: 5.890625
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -792,10 +791,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   width: 128
   height: 128
-  cellularAutomataSteps: 2
-  fillPercent: 40
+  cellularAutomataSteps: 3
+  wallFillPercent: 40
   filledTilePrefab: {fileID: 6839011074189193539, guid: 2992ccc097576b5479f57678aa86cf71, type: 3}
   borderPrefab: {fileID: 2236329926240497593, guid: 62e8fe0749b82d14f868d4dbdd699ca9, type: 3}
+  oreTilePrefab: {fileID: 2146331142983831522, guid: 133f08d9770788d44b605e4739dc23d3, type: 3}
+  oreFillPercent: 25
+  oreCellularAutomataSteps: 1
 --- !u!4 &2086013934
 Transform:
   m_ObjectHideFlags: 0
