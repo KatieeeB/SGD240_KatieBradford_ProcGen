@@ -12,9 +12,12 @@ public class ProceduralCaveGeneration : MonoBehaviour
 
     [SerializeField] private int cellularAutomataSteps;
     [Range(0,100)] [SerializeField] private int wallFillPercent;
-    [SerializeField] private GameObject filledTilePrefab;
+    [SerializeField] private GameObject caveWallPrefab;
     [SerializeField] private GameObject borderPrefab;
     
+    [SerializeField] private int outskirtsWidth;
+
+
     //empty or fill (random noise/cellular automata)
     private enum squareType
     {
@@ -78,7 +81,7 @@ public class ProceduralCaveGeneration : MonoBehaviour
             RandomNoiseGrid(ore.fillPercent); //generate random noise grid with ore fill percentage
             for (int i = 0; i < ore.caSteps; i ++) //repeat cellular automata for desired number of steps
             {
-                CellularAutomata();
+                OreCellularAutomata();
             }
 
             
@@ -95,6 +98,53 @@ public class ProceduralCaveGeneration : MonoBehaviour
                 }
             }
         }
+    } 
+
+
+//ORE CELLULAR AUTOMATA
+
+    void OreCellularAutomata()
+    {
+    	for (int x = 0; x < width; x ++) 
+        {
+			for (int y = 0; y < height; y ++) 
+            {
+                int neighbourWallTiles = GetNeighbouringWallCountOre(x,y); //get the number of neighbouring wall tiles
+
+				    if (neighbourWallTiles > 4) //if there are more than 4 neighbouring wall tiles, set the tile to a wall
+				    {
+                        grid[x,y] = squareType.FILL;
+                    }
+				    else if (neighbourWallTiles < 4) //otherwise the tile is empty
+				    {	
+                        grid[x,y] = squareType.EMPTY;
+                    }
+            }
+        }
+    }
+
+   int GetNeighbouringWallCountOre (int gridX, int gridY) //get the number of neighbouring wall tiles
+    {
+        int wallCount = 0;
+
+        for (int neighbourX = gridX - 1; neighbourX <= gridX +1; neighbourX ++) 
+        { 
+            for (int neighbourY = gridY - 1; neighbourY <= gridY +1; neighbourY ++) 
+            {
+                if (IsInsideMap(neighbourX, neighbourY)) { //if the tile is inside the map
+                    if (grid[neighbourX, neighbourY] == squareType.FILL) //if it is a wall
+                    { 
+                        wallCount ++; //add to the wall count
+                    }
+                }
+                else //if the tile is not inside the map
+                { 
+                    wallCount --; //add to the wall count
+                }
+            }
+        }
+
+        return wallCount;
     } 
 
     void RandomNoiseGrid(int fillPercent) //Generates random noise grid
@@ -122,7 +172,8 @@ public class ProceduralCaveGeneration : MonoBehaviour
         return x >= (width/2) - 1 && x <= (width/2) + 1 && y >= (height/2) - 2 && y <= (height/2); //middle 3x3 tiles of the map
     }
 
-    void CellularAutomata() { //Put the map through Cellular Automata process
+    void CellularAutomata() //Put the map through Cellular Automata process
+    { 
 		for (int x = 0; x < width; x ++) 
         {
 			for (int y = 0; y < height; y ++) 
@@ -191,26 +242,43 @@ public class ProceduralCaveGeneration : MonoBehaviour
             {
                 if (map[x,y] == tileType.WALL)
                 {
-                    InstantiateTiles(x, y, filledTilePrefab); //instantiate walls
+                    InstantiateTiles(x, y, caveWallPrefab); //instantiate walls
                 }
             }
         }
-
+        DrawOutskirts();
         DrawBorder();
+    }
+    
+    void DrawOutskirts() //create a buffer between the cave systems and edge of the map
+    {
+        for (int i = 0; i < outskirtsWidth; i++)
+        {
+            for (int x = 0-(i+1); x < width+(i+1); x++) //x axis
+            {
+                InstantiateTiles(x, (-1-i), caveWallPrefab);
+                InstantiateTiles(x, (height+i), caveWallPrefab);
+            }
+            for (int y = (0-i); y < (height+i); y ++) //y axis
+            {
+            InstantiateTiles((-1-i), y, caveWallPrefab);
+            InstantiateTiles((width+i), y, caveWallPrefab);
+            } 
+        }
     }
 
     void DrawBorder() //create a border around the map
     {
-        for (int x = 0; x < width; x++) //x axis
+        for (int x = (0 - outskirtsWidth); x < (width + outskirtsWidth); x++) //x axis
         {
-            InstantiateTiles(x, -1, borderPrefab);
-            InstantiateTiles(x, height, borderPrefab);
+            InstantiateTiles(x, (-1 - outskirtsWidth), borderPrefab);
+            InstantiateTiles(x, (height + outskirtsWidth), borderPrefab);
         }
 
-        for (int y = 0; y < height; y ++) //y axis
+        for (int y = (0 - outskirtsWidth); y < (height + outskirtsWidth); y ++) //y axis
         {
-            InstantiateTiles(-1, y, borderPrefab);
-            InstantiateTiles(width, y, borderPrefab);
-        }
-    }
+            InstantiateTiles((-1 - outskirtsWidth), y, borderPrefab);
+            InstantiateTiles((width + outskirtsWidth), y, borderPrefab);
+        } 
+    }    
 }
