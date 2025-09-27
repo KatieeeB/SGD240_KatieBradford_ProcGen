@@ -7,16 +7,18 @@ public class ProceduralCaveGeneration : MonoBehaviour
     [Header("Ore Settings")]
     [SerializeField] private List<OreType> oreTypes;
     
-    [SerializeField] private int width;
-    [SerializeField] private int height;
-
+    [Header("Cave Settings")]
     [SerializeField] private int cellularAutomataSteps;
     [Range(0,100)] [SerializeField] private int wallFillPercent;
     [SerializeField] private GameObject caveWallPrefab;
-    [SerializeField] private GameObject borderPrefab;
-    
-    [SerializeField] private int outskirtsWidth;
 
+    [Header("Map Settings")]
+    [SerializeField] private int width;
+    [SerializeField] private int height;
+    [SerializeField] private int outskirtsWidth;
+    [SerializeField] private GameObject borderPrefab;
+
+#region enum
 
     //empty or fill (random noise/cellular automata)
     private enum squareType
@@ -34,9 +36,9 @@ public class ProceduralCaveGeneration : MonoBehaviour
         ORE,
     }
     private tileType[,] map;
-    
+#endregion
 
-    
+
     void Start()
     {
         grid = new squareType[width,height];
@@ -45,6 +47,8 @@ public class ProceduralCaveGeneration : MonoBehaviour
         GenerateCaves();
         GenerateOres();
         DrawMap();
+        DrawOutskirts();
+        DrawBorder();
     }
     
     //generate the cave systems
@@ -53,7 +57,7 @@ public class ProceduralCaveGeneration : MonoBehaviour
         RandomNoiseGrid(wallFillPercent); //generate random noise grid
         for (int i = 0; i < cellularAutomataSteps; i ++) //repeat cellular automata for desired number of steps.
         { 
-			CellularAutomata();
+		    CellularAutomata(outOfBoundsRule: true);
         }
 
         //every filled tile on the grid becomes a wall
@@ -81,7 +85,7 @@ public class ProceduralCaveGeneration : MonoBehaviour
             RandomNoiseGrid(ore.fillPercent); //generate random noise grid with ore fill percentage
             for (int i = 0; i < ore.caSteps; i ++) //repeat cellular automata for desired number of steps
             {
-                OreCellularAutomata();
+                CellularAutomata(outOfBoundsRule: false);
             }
 
             
@@ -100,53 +104,7 @@ public class ProceduralCaveGeneration : MonoBehaviour
         }
     } 
 
-
-//ORE CELLULAR AUTOMATA
-
-    void OreCellularAutomata()
-    {
-    	for (int x = 0; x < width; x ++) 
-        {
-			for (int y = 0; y < height; y ++) 
-            {
-                int neighbourWallTiles = GetNeighbouringWallCountOre(x,y); //get the number of neighbouring wall tiles
-
-				    if (neighbourWallTiles > 4) //if there are more than 4 neighbouring wall tiles, set the tile to a wall
-				    {
-                        grid[x,y] = squareType.FILL;
-                    }
-				    else if (neighbourWallTiles < 4) //otherwise the tile is empty
-				    {	
-                        grid[x,y] = squareType.EMPTY;
-                    }
-            }
-        }
-    }
-
-   int GetNeighbouringWallCountOre (int gridX, int gridY) //get the number of neighbouring wall tiles
-    {
-        int wallCount = 0;
-
-        for (int neighbourX = gridX - 1; neighbourX <= gridX +1; neighbourX ++) 
-        { 
-            for (int neighbourY = gridY - 1; neighbourY <= gridY +1; neighbourY ++) 
-            {
-                if (IsInsideMap(neighbourX, neighbourY)) { //if the tile is inside the map
-                    if (grid[neighbourX, neighbourY] == squareType.FILL) //if it is a wall
-                    { 
-                        wallCount ++; //add to the wall count
-                    }
-                }
-                else //if the tile is not inside the map
-                { 
-                    wallCount --; //add to the wall count
-                }
-            }
-        }
-
-        return wallCount;
-    } 
-
+#region Random Noise Grid
     void RandomNoiseGrid(int fillPercent) //Generates random noise grid
     {
         for (int x = 0; x < width; x ++) 
@@ -166,15 +124,13 @@ public class ProceduralCaveGeneration : MonoBehaviour
             }
         }
     }
+#endregion
 
-    bool IsMapCentre(int x, int y) 
+#region Cellular Automata
+
+    void CellularAutomata(bool outOfBoundsRule)
     {
-        return x >= (width/2) - 1 && x <= (width/2) + 1 && y >= (height/2) - 2 && y <= (height/2); //middle 3x3 tiles of the map
-    }
-
-    void CellularAutomata() //Put the map through Cellular Automata process
-    { 
-		for (int x = 0; x < width; x ++) 
+        for (int x = 0; x < width; x ++) 
         {
 			for (int y = 0; y < height; y ++) 
             {
@@ -184,7 +140,7 @@ public class ProceduralCaveGeneration : MonoBehaviour
                 }
                 else
                 {
-				    int neighbourWallTiles = GetNeighbouringWallCount(x,y); //get the number of neighbouring wall tiles
+				    int neighbourWallTiles = GetNeighbouringWallCount(x,y, outOfBoundsRule); //get the number of neighbouring wall tiles
 
 				    if (neighbourWallTiles > 4) //if there are more than 4 neighbouring wall tiles, set the tile to a wall
 				    {
@@ -197,14 +153,9 @@ public class ProceduralCaveGeneration : MonoBehaviour
 			    }
             }
 		}
-	}
-
-    bool IsInsideMap(int x, int y)  //check if the neighbouring tile is inside the map
-    { 
-        return x >= 0 && x < width && y >= 0 && y < height; //true if x/y is greater than or equal to 0, and is less than the width/height
     }
 
-    int GetNeighbouringWallCount (int gridX, int gridY) //get the number of neighbouring wall tiles
+    int GetNeighbouringWallCount (int gridX, int gridY, bool outOfBoundsRule) //get the number of neighbouring wall tiles
     {
         int wallCount = 0;
 
@@ -218,16 +169,34 @@ public class ProceduralCaveGeneration : MonoBehaviour
                         wallCount ++; //add to the wall count
                     }
                 }
-                else //if the tile is not inside the map
+                else if (outOfBoundsRule)//if the tile is not inside the map (and the out of bounds rule is true)
                 { 
                     wallCount ++; //add to the wall count
+                }
+                else //if the tile is not inside the map (and the out of bounds rule is false)
+                {
+                    wallCount --; //remove from the wall count
                 }
             }
         }
 
         return wallCount;
     } 
- 
+
+    bool IsMapCentre(int x, int y) 
+    {
+        return x >= (width/2) - 1 && x <= (width/2) + 1 && y >= (height/2) - 2 && y <= (height/2); //middle 3x3 tiles of the map
+    }
+
+    bool IsInsideMap(int x, int y)  //check if the neighbouring tile is inside the map
+    { 
+        return x >= 0 && x < width && y >= 0 && y < height; //true if x/y is greater than or equal to 0, and is less than the width/height
+    }
+
+#endregion
+
+#region instantiating tiles/map
+
     void InstantiateTiles(int x, int y, GameObject prefab)
     {
         Vector2 position = new Vector2(x - (width/2), y - (height/2)); //centre the map
@@ -246,10 +215,12 @@ public class ProceduralCaveGeneration : MonoBehaviour
                 }
             }
         }
-        DrawOutskirts();
-        DrawBorder();
+
     }
-    
+
+
+
+
     void DrawOutskirts() //create a buffer between the cave systems and edge of the map
     {
         for (int i = 0; i < outskirtsWidth; i++)
@@ -280,5 +251,8 @@ public class ProceduralCaveGeneration : MonoBehaviour
             InstantiateTiles((-1 - outskirtsWidth), y, borderPrefab);
             InstantiateTiles((width + outskirtsWidth), y, borderPrefab);
         } 
-    }    
+    }  
+
+#endregion
+
 }
