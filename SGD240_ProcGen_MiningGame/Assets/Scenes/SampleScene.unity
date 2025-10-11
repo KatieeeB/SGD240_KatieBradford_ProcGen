@@ -769,6 +769,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2086013934}
+  - component: {fileID: 2086013935}
   - component: {fileID: 2086013933}
   m_Layer: 0
   m_Name: Map Generator
@@ -792,17 +793,17 @@ MonoBehaviour:
   oreTypes:
   - name: Gold
     prefab: {fileID: 2146331142983831522, guid: 133f08d9770788d44b605e4739dc23d3, type: 3}
-    fillPercent: 30
+    fillPercent: 25
     caSteps: 1
   - name: Iron
     prefab: {fileID: 2146331142983831522, guid: b0c34c7c4f02aed48b27bcadb8dc037f, type: 3}
-    fillPercent: 25
+    fillPercent: 20
     caSteps: 1
   - name: Diamond
     prefab: {fileID: 2146331142983831522, guid: 36cd4832aea00d9488463bde746f6faa, type: 3}
-    fillPercent: 20
+    fillPercent: 15
     caSteps: 1
-  cellularAutomataSteps: 3
+  cellularAutomataSteps: 10
   wallFillPercent: 40
   caveWallPrefab: {fileID: 6839011074189193539, guid: 2992ccc097576b5479f57678aa86cf71, type: 3}
   width: 128
@@ -824,6 +825,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2086013935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2086013932}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 453748295dc7f004d90227efb591b07e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  customSeed: 1
+  seed: 0
+  useSeed: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
