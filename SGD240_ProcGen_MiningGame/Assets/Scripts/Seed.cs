@@ -4,22 +4,34 @@ using UnityEngine;
 
 public class Seed : MonoBehaviour
 {
-    [SerializeField] private string customSeed = "Default";    
     [SerializeField] private int seed = 0;
-    [SerializeField] private bool useCustomSeed;
+    [SerializeField] private string customSeed;
+    [SerializeField] private bool useCustomSeed = false;
+    private GameManager gameManager;
+    [SerializeField] private GameObject UI;
+    private PauseMenu pauseMenu;
 
     void Awake()
     {
+        gameManager = GameManager.Instance; //create a reference to the game manager
+        pauseMenu = UI.GetComponent<PauseMenu>();
+        
+        useCustomSeed = gameManager.useCustomSeed;
+        customSeed = gameManager.customSeed;
+
         if (useCustomSeed) //if using a custom seed
         {
             seed = StringToInt(customSeed); //convert customSeed to an int
             Random.InitState(seed); //initialize the random number generator with the seed.
+            pauseMenu.SetSeedText(customSeed);
         }
+
         else //not using a custom seed
         {
             int seed = Random.Range(1, 1000000); //randomise seed
             Random.InitState(seed); //initialize the random number generator with the seed.
             Debug.Log(seed);
+            pauseMenu.SetSeedText(seed.ToString());
         }
     }
 

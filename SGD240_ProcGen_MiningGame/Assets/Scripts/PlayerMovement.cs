@@ -23,21 +23,22 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-        if(playerMining != null && playerMining.isMining) //if the player is currently mining
+        if (!PauseMenu.isPaused)
         {
-            movement = Vector2.zero; //stop player movement
+            if(playerMining != null && playerMining.isMining) //if the player is currently mining
+            {
+                movement = Vector2.zero; //stop player movement
+            }
+            else
+            {
+                movement.x = Input.GetAxisRaw("Horizontal"); //set movement.x to horizontal input
+                movement.y = Input.GetAxisRaw("Vertical"); //set movement.y to vertical input
+
+                FlipSprite();
+
+                animator.SetFloat("Walking", Mathf.Abs(movement.sqrMagnitude)); //play walking animation when the player moves in any direction
+            }
         }
-        else
-        {
-            movement.x = Input.GetAxisRaw("Horizontal"); //set movement.x to horizontal input
-            movement.y = Input.GetAxisRaw("Vertical"); //set movement.y to vertical input
-
-            FlipSprite();
-
-            animator.SetFloat("Walking", Mathf.Abs(movement.sqrMagnitude)); //play walking animation when the player moves in any direction
-        }
-
     }
 
 

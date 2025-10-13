@@ -21,6 +21,8 @@ public class PlayerMining : MonoBehaviour
     {
         UpdateFacingDirection();
 
+        if (!PauseMenu.isPaused)
+        {
         //if the player presses the "mine" button and is not currently mining
         if(Input.GetButtonDown("Mine") && !isMining) 
         {
@@ -30,6 +32,7 @@ public class PlayerMining : MonoBehaviour
         else
         {
             animator.SetBool("Mining", false); //set Mining bool to false in animator
+        }
         }
 
     }
